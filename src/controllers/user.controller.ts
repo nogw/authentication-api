@@ -17,7 +17,7 @@ const createUser = async ( req: Request, res: Response ) => {
   try {
     const user = await User.find({ email: req.body.email }).exec()
 
-    if (user) {
+    if (user.length > 0) {
       return res.status(400).json({
         error: "user exists"
       })
@@ -32,14 +32,15 @@ const createUser = async ( req: Request, res: Response ) => {
 
       let user = new User({
         name: req.body.name,
-        email: req.body.name,
+        email: req.body.email,
         password: hashedPass,
       })
 
       user.save()
       .then((user: any) => {
         let token = jwt.sign({
-          name: user.name
+          name: user.name,
+          userId: user._id
         },
           process.env.JWT_SECRET
         )
@@ -65,51 +66,52 @@ const logUser = async ( req: Request, res: Response ) => {
   const { errors, isValid } = validateLogin(req.body)
 
   if (!isValid) {
-    return res.status(400).json({
-      error: errors
-    })
+    return res.status(400).json(errors)
   }
 
   try {
-    const user: any = User.findOne({ email: req.body.email }).exec()
+    const user: any = await User.findOne({ email: req.body.email }).exec()
 
     if (!user) {
       return res.status(400).json({
-        error: "Could not find email."
+        email: 'Could not find email.',
       })
     }
 
-    return bcrypt.compare( req.body.password, user.password, (err, result) => {
+    return bcrypt.compare(req.body.password, user.password, function (err, result) {
+      
       if (err) {
         return res.status(400).json({
-          error: err
+          errorMessage: err,
         })
       }
-
+      
       if (result) {
-        let token = jwt.sign(
-          {
+        let token: any = jwt.sign(
+          { 
             id: user._id,
-            name: user.name
-          },
+	          name: user.name,
+            avatarColor: user.avatarColor,
+            description: user.description
+          }, 
           process.env.JWT_SECRET
         )
 
         return res.status(200).json({
-          token
+          message: 'Login successful',
+          token,
+        })
+      } 
+      
+      else {
+        return res.status(400).json({
+          message: 'Password does not matched!',
         })
       }
 
-      else {
-        return res.status(400).json({
-          error: "password does not matched"
-        })
-      }
     })
-  } catch (error) {
-    return res.status(400).json({
-      error: error
-    })
+  } catch (err) {
+    return res.status(400).json({ message: err })
   }
 }
 
