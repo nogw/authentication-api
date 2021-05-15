@@ -8,7 +8,7 @@ router.route("/register")
   .post(userController.createUser)
 
 router.route("/login")
-  .all(auth)
+  // .all(auth)
   .post(userController.logUser)
 
 export default router

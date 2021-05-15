@@ -19,7 +19,7 @@ const createUser = async ( req: Request, res: Response ) => {
 
     if (user.length > 0) {
       return res.status(400).json({
-        error: "user exists"
+        error: 'user exists'
       })
     }
 
@@ -98,14 +98,14 @@ const logUser = async ( req: Request, res: Response ) => {
         )
 
         return res.status(200).json({
-          message: 'Login successful',
-          token,
+          auth: true,
+          token: token,
         })
       } 
       
       else {
         return res.status(400).json({
-          message: 'Password does not matched!',
+          message: 'password does not matched!',
         })
       }
 
