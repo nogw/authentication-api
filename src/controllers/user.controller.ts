@@ -4,8 +4,13 @@ import validateRegister from '../validation/validateRegister'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import User from '../models/user.model'
+import nodemailer from 'nodemailer'
+import * as fs from 'fs';
+import * as path from 'path';
+import * as handlebars from 'handlebars';
 
 const createUser = async ( req: Request, res: Response ) => {
+  // * this function needs an email, user, password and confirm password
   const { errors, isValid } = validateRegister(req.body)
 
   if (!isValid) {
@@ -63,6 +68,8 @@ const createUser = async ( req: Request, res: Response ) => {
 }
 
 const logUser = async ( req: Request, res: Response ) => {
+  // * this function needs an email and a user
+
   const { errors, isValid } = validateLogin(req.body)
 
   if (!isValid) {
@@ -115,7 +122,57 @@ const logUser = async ( req: Request, res: Response ) => {
   }
 }
 
+const resetPasswordUser = async ( req: Request, res: Response ) => {
+  const filePath = path.join(__dirname, '../html_email/template.html');
+  const source = fs.readFileSync(filePath, 'utf-8').toString();
+  const template = handlebars.compile(source);
+  const replacements = {
+    username: "Umut YEREBAKMAZ"
+  };
+  const htmlToSend = template(replacements);
+
+  const user = await User.find({ email: req.body.emailToReset }).exec()
+
+  if (user.length < 1) {
+    return res.status(404).json({
+      error: "user not found"
+    })
+  }
+
+  try {
+    var transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: 'testandotermux@gmail.com',
+        pass: 'Mari.1981'
+      }
+    });
+    
+    var mailOptions = {
+      from: 'testandotermux@gmail.com',
+      to: req.body.emailToReset,
+      subject: 'no-reply',
+      html: htmlToSend
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+      if (error) {
+        res.send(error);
+      } else {
+        res.send('aaa');
+      }
+    });
+  } catch (error) {
+    return res.status(400).json({
+      error: error
+    })
+  }
+}
+
 export default {
   createUser,
-  logUser
+  logUser,
+  resetPasswordUser,
 }

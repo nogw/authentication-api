@@ -11,4 +11,7 @@ router.route("/login")
   // .all(auth)
   .post(userController.logUser)
 
+router.route("/reset")
+  .post(userController.resetPasswordUser)
+
 export default router
