@@ -12,6 +12,9 @@ router.route("/login")
   .post(userController.logUser)
 
 router.route("/reset")
+  .post(userController.sendEmail2PasswordUser)
+
+router.route("/reset/password/:token")
   .post(userController.resetPasswordUser)
 
 export default router

@@ -54,13 +54,13 @@ const createUser = async ( req: Request, res: Response ) => {
           message: token
         })
       })
-      .catch((error) => {
+      .catch((error: Error) => {
         return res.status(400).json({
           error: error
         })
       })
     })
-  } catch (error) {
+  } catch (error: any) {
     return res.status(400).json({
       error: error
     })
@@ -122,15 +122,8 @@ const logUser = async ( req: Request, res: Response ) => {
   }
 }
 
-const resetPasswordUser = async ( req: Request, res: Response ) => {
-  const filePath = path.join(__dirname, '../html_email/template.html');
-  const source = fs.readFileSync(filePath, 'utf-8').toString();
-  const template = handlebars.compile(source);
-  const replacements = {
-    username: "Umut YEREBAKMAZ"
-  };
-  const htmlToSend = template(replacements);
-
+const sendEmail2PasswordUser = async ( req: Request, res: Response ) => {
+  // find email to check if exists in database
   const user = await User.find({ email: req.body.emailToReset }).exec()
 
   if (user.length < 1) {
@@ -139,15 +132,33 @@ const resetPasswordUser = async ( req: Request, res: Response ) => {
     })
   }
 
+  // TODO: create temporary ids generation to reset password
+  // try sending an email with a link to reset the password 
   try {
+    let token = jwt.sign(
+      { id: user[0]._id },
+      process.env.JWT_SECRET,
+      { expiresIn: 60 * 5 }
+    )
+    // email template to reset password
+    const filePath = path.join(__dirname, '../html_email/template.hbs');
+    const source = fs.readFileSync(filePath, 'utf-8').toString();
+    const template = handlebars.compile(source);
+    const replacements = {
+      link: `http://localhost:3000/reset/${token}`
+    };
+    const htmlToSend = template(replacements);
+
+    const credentials = {
+      user: process.env.EMAIL2SEND,
+      pass: process.env.PASSWORD2SEND
+    }
+
     var transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 465,
       secure: true,
-      auth: {
-        user: 'testandotermux@gmail.com',
-        pass: 'Mari.1981'
-      }
+      auth: credentials
     });
     
     var mailOptions = {
@@ -159,20 +170,59 @@ const resetPasswordUser = async ( req: Request, res: Response ) => {
 
     transporter.sendMail(mailOptions, function(error, info){
       if (error) {
-        res.send(error);
+        console.log(error);
       } else {
-        res.send('aaa');
+        res.send(process.env.EMAIL2SEND);
       }
     });
-  } catch (error) {
+  } catch (err) {
     return res.status(400).json({
-      error: error
+      error: err
     })
   }
+}
+
+const resetPasswordUser = ( req: Request, res: Response ) => {
+  const token = req.params.token
+
+  const decodedJWT = jwt.decode(token)
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded: any) => {
+    if (err) {
+      return res.status(400).json({
+        error: "your token inspired, try again"
+      })
+    }
+
+    return bcrypt.hash(req.body.password, 10, (err, hashedNewPassword) => {
+      if (err) {
+        return res.status(400).json({
+          error: err
+        })
+      }
+
+      User.findByIdAndUpdate(
+        decoded.id, 
+        { password: hashedNewPassword }, 
+        { useFindAndModify: false },
+        (err, doc) => {
+          if (err) {
+            return res.status(400).json({
+              error: err
+            })
+          }
+
+          return res.status(200).json({
+            message: doc
+          })
+        }
+      )
+    })
+  })
 }
 
 export default {
   createUser,
   logUser,
-  resetPasswordUser,
+  sendEmail2PasswordUser,
+  resetPasswordUser
 }

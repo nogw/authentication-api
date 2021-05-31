@@ -21,7 +21,7 @@ const auth = ( req: Request, res: Response, next: NextFunction ) => {
     const userId = (decoded as IDecodedToken).userId    
 
     User.findById(userId)
-    .then(( responseUserId ) => {
+    .then(( responseUserId: any ) => {
       if ( userId === null ) {
         return res.status(400).json({
           error: 'not authorized!'
@@ -31,12 +31,12 @@ const auth = ( req: Request, res: Response, next: NextFunction ) => {
         return next()
       }
     })
-    .catch(( error ) => {
+    .catch(( error: Error ) => {
       return res.status(400).json({
         error: decoded
       })
     })
-  } catch (error) {
+  } catch (error: any) {
     return res.status(400).json({
       error: error
     })

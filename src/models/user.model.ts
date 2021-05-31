@@ -1,7 +1,14 @@
-import mongoose from 'mongoose'
+import mongoose, { Document } from 'mongoose'
 const Schema = mongoose.Schema
 
-const userSchema = new Schema(
+export interface IData extends Document {
+  _id: string,
+  name: string,
+  email: string,
+  password: string
+};
+
+const userSchema = new Schema<IData>(
   {
     name: {
       type: String,
