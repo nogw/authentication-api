@@ -5,22 +5,35 @@ import cors from 'cors'
 import router from './router'
 import mongoose from 'mongoose'
 import helmet from 'helmet'
-import * as socketio from 'socket.io'
+import { createServer } from "http";
+import * as socketio from "socket.io";
 
 // express server & websocket config
 const app = express()
 const port = process.env.PORT || 8000
-app.set("port", port)
-const http = require("http").Server(app);
-const io = require("socket.io")(http)
 
+app.set("port", port)
 app.use(cors())
 app.use(helmet())
 app.use(express.json())
 app.use("/", router)
 
-io.on("connection", (socket: any) => {
-  console.log(socket)
+const httpServer = createServer(app);
+
+const io = new socketio.Server(httpServer, {
+  cors: {
+    origin: "http://localhost:3000",
+  }
+})
+
+io.sockets.on("connection", (socket: socketio.Socket) => {
+  socket.on("join", (room) => {
+    socket.join(room)
+
+    socket.on("jwt", (jwt) => {
+      socket.broadcast.to(room).emit("auth", jwt)
+    })
+  })
 })
 
 // database config
@@ -34,15 +47,15 @@ mongoose.connect(mgURI, {
 
 const db = mongoose.connection
 
-db.on("error", () => {
-  console.error.bind(console, "connection error:")
-})
+// db.on("error", () => {
+//   console.error.bind(console, "connection error:")
+// })
 
-db.once("open", () => {
-  console.log("database connect")
-})
+// db.once("open", () => {
+//   console.log("database connect")
+// })
 
 // start server
-const server = http.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(`run in ${port}`)
 })

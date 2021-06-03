@@ -224,5 +224,5 @@ export default {
   createUser,
   logUser,
   sendEmail2PasswordUser,
-  resetPasswordUser
+  resetPasswordUser,
 }

@@ -17,7 +17,4 @@ router.route("/reset")
 router.route("/reset/password/:token")
   .post(userController.resetPasswordUser)
 
-router.route("/qrcode/generate")
-  .post(userController.generateQrcode)
-
 export default router
