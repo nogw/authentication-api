@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsnd --respawn --transpile-only --ignore-watch node_modules --no-notify src/server.ts"
+    "dev": "tsnd --respawn --transpile-only --ignore-watch node_modules --no-notify src/server.ts",
+    "start": "node public/dist/server.js"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
+    "@types/cookies": "^0.7.6",
     "@types/cors": "^2.8.10",
     "@types/express": "^4.17.11",
     "@types/handlebars": "^4.1.0",

@@ -24,7 +24,7 @@ const createUser = async ( req: Request, res: Response ) => {
 
     if (user.length > 0) {
       return res.status(400).json({
-        error: 'user exists'
+        error: { email: 'This email has already been registered' }
       })
     }
 
@@ -112,7 +112,7 @@ const logUser = async ( req: Request, res: Response ) => {
       
       else {
         return res.status(400).json({
-          message: 'password does not matched!',
+          password: 'Password does not matched!',
         })
       }
 
