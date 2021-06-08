@@ -5,7 +5,8 @@ declare global {
       MG_URI: string;
       JWT_SECRET: string;
       EMAIL2SEND: string;
-      PASSWORD2SEND: string
+      PASSWORD2SEND: string;
+      FRONTEND_URL: string;
     }
   }
 }
