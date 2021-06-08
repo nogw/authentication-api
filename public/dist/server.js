@@ -41,7 +41,7 @@ app.use("/", router_1.default);
 var httpServer = http_1.createServer(app);
 var io = new socketio.Server(httpServer, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: process.env.FRONTEND_URL,
     }
 });
 io.sockets.on("connection", function (socket) {

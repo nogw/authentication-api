@@ -196,7 +196,7 @@ var sendEmail2PasswordUser = function (req, res) { return __awaiter(void 0, void
                     source = fs.readFileSync(filePath, 'utf-8').toString();
                     template = handlebars.compile(source);
                     replacements = {
-                        link: "http://localhost:3000/reset/" + token
+                        link: process.env.FRONTEND_URL + "/reset/" + token
                     };
                     htmlToSend = template(replacements);
                     credentials = {

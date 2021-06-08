@@ -145,7 +145,7 @@ const sendEmail2PasswordUser = async ( req: Request, res: Response ) => {
     const source = fs.readFileSync(filePath, 'utf-8').toString();
     const template = handlebars.compile(source);
     const replacements = {
-      link: `http://localhost:3000/reset/${token}`
+      link: `${process.env.FRONTEND_URL}/reset/${token}`
     };
     const htmlToSend = template(replacements);
 
