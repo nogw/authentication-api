@@ -1,16 +1,17 @@
 import { Request, Response } from 'express'
-import validateLogin from '../validation/validateLogin'
-import validateRegister from '../validation/validateRegister'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import User from '../models/user.model'
 import nodemailer from 'nodemailer'
 import * as fs from 'fs';
 import * as path from 'path';
 import * as handlebars from 'handlebars';
 
+import validateLogin from '../validation/validateLogin'
+import validateRegister from '../validation/validateRegister'
+import User from '../models/user.model'
+
 const createUser = async ( req: Request, res: Response ) => {
-  // * this function needs an email, user, password and confirm password
+  //! this function needs an email, user, password and confirm password
   const { errors, isValid } = validateRegister(req.body)
 
   if (!isValid) {
@@ -20,9 +21,9 @@ const createUser = async ( req: Request, res: Response ) => {
   }
 
   try {
-    const user = await User.find({ email: req.body.email }).exec()
+    const existingUser = await User.findOne({ email: req.body.email }).exec()
 
-    if (user.length > 0) {
+    if (existingUser) {
       return res.status(400).json({
         error: { email: 'This email has already been registered' }
       })
@@ -123,24 +124,25 @@ const logUser = async ( req: Request, res: Response ) => {
 }
 
 const sendEmail2PasswordUser = async ( req: Request, res: Response ) => {
-  // find email to check if exists in database
-  const user = await User.find({ email: req.body.emailToReset }).exec()
+  //! find email to check if exists in database
 
-  if (user.length < 1) {
+  const existingUser = await User.findOne({ email: req.body.emailToReset }).exec()
+
+  if (!existingUser) {
     return res.status(404).json({
       error: "user not found"
     })
   }
 
-  // TODO: create temporary ids generation to reset password
-  // try sending an email with a link to reset the password 
+  //TODO: create temporary ids generation to reset password
+  
   try {
     let token = jwt.sign(
-      { id: user[0]._id },
+      { id: existingUser[0]._id },
       process.env.JWT_SECRET,
       { expiresIn: 60 * 5 }
     )
-    // email template to reset password
+
     const filePath = path.join(__dirname, '../html_email/template.hbs');
     const source = fs.readFileSync(filePath, 'utf-8').toString();
     const template = handlebars.compile(source);

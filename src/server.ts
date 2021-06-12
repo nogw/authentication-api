@@ -8,7 +8,9 @@ import helmet from 'helmet'
 import { createServer } from "http";
 import * as socketio from "socket.io";
 
-// express server & websocket config
+import database from './database'
+import websocket from './websocket'
+
 const app = express()
 const port = process.env.PORT || 8000
 
@@ -26,36 +28,8 @@ const io = new socketio.Server(httpServer, {
   }
 })
 
-io.sockets.on("connection", (socket: socketio.Socket) => {
-  socket.on("join", (room) => {
-    socket.join(room)
+database.connect()
 
-    socket.on("jwt", (jwt) => {
-      socket.broadcast.to(room).emit("auth", jwt)
-    })
-  })
-})
+websocket.socketListeners(io)
 
-// database config
-const mgURI = process.env.MG_URI
-
-mongoose.connect(mgURI, {
-  useCreateIndex: true,
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-
-const db = mongoose.connection
-
-// db.on("error", () => {
-//   console.error.bind(console, "connection error:")
-// })
-
-// db.once("open", () => {
-//   console.log("database connect")
-// })
-
-// start server
-httpServer.listen(port, () => {
-  console.log(`run in ${port}`)
-})
+httpServer.listen(port)
