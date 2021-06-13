@@ -30,6 +30,14 @@ const io = new socketio.Server(httpServer, {
 
 database.connect()
 
-websocket.socketListeners(io)
+io.sockets.on("connection", (socket: socketio.Socket) => {
+  socket.on("join", (room) => {
+    socket.join(room)
+
+    socket.on("jwt", (jwt) => {
+      socket.broadcast.to(room).emit("auth", jwt)
+    })
+  })
+})
 
 httpServer.listen(port)
